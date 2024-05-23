@@ -78,6 +78,8 @@ namespace Mango.Services.CouponAPI.Controllers
                 Coupon counpon = mapper.Map<Coupon>(couponDto);
                 db.Coupons.Add(counpon);
                 db.SaveChanges();
+
+                response.Result = couponDto;
             }
             catch (Exception ex)
             {
@@ -85,6 +87,43 @@ namespace Mango.Services.CouponAPI.Controllers
                 response.Message = ex.Message;
             }
             return response;
-        } 
+        }
+
+        [HttpPut]
+        public ResponseDto Put([FromBody] CouponDto couponDto)
+        {
+            try
+            {
+                Coupon coupon = mapper.Map<Coupon>(couponDto);
+                db.Update(coupon);
+                db.SaveChanges();
+
+                response.Result = couponDto;
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+        [HttpDelete]
+        [Route("{id}")]
+        public ResponseDto Delete(int id)
+        {
+            try
+            {
+                Coupon coupon = db.Coupons.First(c => c.CouponId == id);
+                db.Remove(coupon);
+                db.SaveChanges();   
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
     }
 }
