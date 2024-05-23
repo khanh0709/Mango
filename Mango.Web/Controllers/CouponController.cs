@@ -22,7 +22,7 @@ namespace Mango.Web.Controllers
             }
             else
 			{
-				TempData["error"] = "Error";
+				TempData["error"] = response.Message;
 			}
             return View(list);
         }
@@ -45,7 +45,7 @@ namespace Mango.Web.Controllers
                 }
                 else
                 {
-                    TempData["error"] = "Error";
+                    TempData["error"] = response.Message;
                 }
             }
 
@@ -62,7 +62,7 @@ namespace Mango.Web.Controllers
 			}
             else
             {
-                TempData["error"] = "Error";
+                TempData["error"] = response.Message;
             }
 
             return RedirectToAction("CouponIndex");
@@ -78,7 +78,7 @@ namespace Mango.Web.Controllers
 			}
             else
             {
-                TempData["error"] = "Error";
+                TempData["error"] = response.Message;
             }
             return RedirectToAction("CouponIndex");
 		}
