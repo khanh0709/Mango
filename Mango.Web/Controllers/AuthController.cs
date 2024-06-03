@@ -1,18 +1,33 @@
 ﻿using Mango.Web.Models;
 using Mango.Web.Models.Dto;
+using Mango.Web.Service;
 using Mango.Web.Service.IService;
 using Mango.Web.Util;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Newtonsoft.Json;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace Mango.Web.Controllers
 {
     public class AuthController : Controller
     {
         private readonly IAuthService _authService;
-        public AuthController(IAuthService authService)
+        private readonly ITokenProvider _tokenProvider;
+        public AuthController(IAuthService authService, ITokenProvider tokenProvider)
         {
             _authService = authService;
+            _tokenProvider = tokenProvider;
+        }
+
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync();
+            _tokenProvider.ClearToken();    
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpGet]
@@ -23,9 +38,28 @@ namespace Mango.Web.Controllers
         }
 
         [HttpPost]
-        public IActionResult Login(LoginRequestDTO loginRequestDTO)
+        public async Task<IActionResult> Login(LoginRequestDTO loginRequestDTO)
         {
-            return View(loginRequestDTO);
+            ResponseDto responseDTO = await _authService.LoginAsync(loginRequestDTO);
+            if(responseDTO != null && responseDTO.IsSuccess)
+            {
+                //if (responseDTO.Result is LoginResponseDTO)
+                //{
+                //    LoginResponseDTO loginResponseDTO2 = (LoginResponseDTO)responseDTO.Result;
+                //}
+                //else
+                //{
+                //}
+                LoginResponseDTO loginResponseDTO = JsonConvert.DeserializeObject<LoginResponseDTO>(Convert.ToString(responseDTO.Result));
+                await SigninUser(loginResponseDTO);
+                _tokenProvider.SetToken(loginResponseDTO.Token);
+                return RedirectToAction("Index", "Home");
+            }
+            else
+            {
+                TempData["error"] = responseDTO.Message;
+                return View(loginRequestDTO);
+            }
         }
 
         [HttpGet]
@@ -60,14 +94,40 @@ namespace Mango.Web.Controllers
                     return RedirectToAction(nameof(Login));
                 }
             }
+            else
+            {
+                TempData["error"] = responseDTO.Message;
+            }
             var roleList = new List<SelectListItem>()
             {
                 new SelectListItem{Text = SD.RoleAdmin, Value = SD.RoleAdmin },
                 new SelectListItem{Text = SD.RoleCustomer, Value = SD.RoleCustomer }
             };
             ViewBag.RoleList = roleList;
-            TempData["error"] = "Registratin Error";
             return View(model);
+        }
+
+        private async Task SigninUser(LoginResponseDTO model)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(model.Token);
+            var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
+            identity.AddClaim(new Claim(JwtRegisteredClaimNames.Email, 
+                jwt.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Email).Value));
+            identity.AddClaim(new Claim(JwtRegisteredClaimNames.Sub, 
+                jwt.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Sub).Value));
+            identity.AddClaim(new Claim(JwtRegisteredClaimNames.Name, 
+                jwt.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Name).Value));
+            //tai sao ko dung claimtypes o day
+            identity.AddClaim(new Claim(ClaimTypes.Name,
+               jwt.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Email).Value));
+            //dung de phan quyen trong controller cua Web, ko phai cua api
+            identity.AddClaim(new Claim(ClaimTypes.Role,
+               jwt.Claims.FirstOrDefault(u => u.Type == "role").Value));
+
+            var principal = new ClaimsPrincipal(identity);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+            //de User.Identity.IsAuthenticated tra ve true
         }
     }
 }

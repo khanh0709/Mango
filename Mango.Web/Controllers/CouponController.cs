@@ -14,7 +14,7 @@ namespace Mango.Web.Controllers
         }
         public async Task<IActionResult> CouponIndex()
         {
-            List<CouponDto> list = null;
+            List<CouponDto> list = new List<CouponDto>();
             ResponseDto response = await couponService.GetAllCouponAsync();
             if(response != null && response.IsSuccess) 
             {
