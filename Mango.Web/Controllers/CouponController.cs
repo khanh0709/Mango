@@ -57,7 +57,7 @@ namespace Mango.Web.Controllers
 			ResponseDto response = await couponService.GetCouponByIdAsync(couponId);
 			if (response != null && response.IsSuccess)
 			{
-                CouponDto couponDto = JsonConvert.DeserializeObject<CouponDto>(Convert.ToString(response.Result));
+                CouponDto? couponDto = JsonConvert.DeserializeObject<CouponDto>(response.Result.ToString());
                 return View(couponDto);
 			}
             else

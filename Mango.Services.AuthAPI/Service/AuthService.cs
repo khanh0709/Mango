@@ -45,29 +45,33 @@ namespace Mango.Services.AuthAPI.Service
 
         public async Task<LoginResponseDTO> Login(LoginRequestDTO loginRequestDTO)
         {
-            var user = _db.ApplicationUsers.FirstOrDefault(u => u.UserName.ToLower() == loginRequestDTO.UserName.ToLower());
-            bool isValid = await _userManager.CheckPasswordAsync(user, loginRequestDTO.Password);
-            if (user == null || isValid == false)
+            //var user = _db.ApplicationUsers.FirstOrDefault(u => u.UserName.ToLower() == loginRequestDTO.UserName.ToLower());
+            var user = await _userManager.FindByNameAsync(loginRequestDTO.UserName);
+            if(user != null)
             {
-                return new LoginResponseDTO() { User = null, Token = "" }; 
+			    bool isValid = await _userManager.CheckPasswordAsync(user, loginRequestDTO.Password);
+                if(isValid)
+                {
+					//if user was found, generate jwt token
+					var roles = await _userManager.GetRolesAsync(user);
+					var token = _jwtTokenGenerator.GenerateToken(user, roles);
+					UserDTO userDTO = new UserDTO()
+					{
+						Email = user.Email,
+						ID = user.Id,
+						Name = user.Name,
+						PhoneNumber = user.PhoneNumber
+					};
+					LoginResponseDTO loginResponseDTO = new LoginResponseDTO()
+					{
+						User = userDTO,
+						Token = token
+					};
+					return loginResponseDTO;
+				}
             }
-            //if user was found, generate jwt token
-            var roles = await _userManager.GetRolesAsync(user); 
-            var token = _jwtTokenGenerator.GenerateToken(user, roles);
-            UserDTO userDTO = new UserDTO()
-            {
-                Email = user.Email,
-                ID = user.Id,
-                Name = user.Name,
-                PhoneNumber = user.PhoneNumber
-            };
-            LoginResponseDTO loginResponseDTO = new LoginResponseDTO()
-            {
-                User = userDTO,
-                Token = token
-            };
-            return loginResponseDTO;
-        }
+			return new LoginResponseDTO() { User = null, Token = "" };
+		}
 
         public async Task<string> Register(RegistrationRequestDTO registrationRequestDTO)
         {

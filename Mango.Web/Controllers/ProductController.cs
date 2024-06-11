@@ -70,10 +70,30 @@ namespace Mango.Web.Controllers
             }
             return View();
         }
-        [HttpPost]
-        public IActionResult ProductIndex(int id)
+        [HttpGet]
+        public async Task<IActionResult> ProductDelete(int productId)
         {
-            return View();
+            ResponseDto responseDTO = await _productService.GetProductByIdAsync(productId);
+            if (responseDTO != null && responseDTO.IsSuccess)
+            {
+                ProductDTO productDTO = JsonConvert.DeserializeObject<ProductDTO>(Convert.ToString(responseDTO.Result));
+                return View(productDTO);
+            }
+            return RedirectToAction(nameof(ProductIndex));
+        }
+        [HttpPost]
+        public async Task<IActionResult> ProductDeleteHandler(int productId)
+        {
+            ResponseDto responseDTO = await _productService.DeleteProductAsync(productId);
+            if (responseDTO != null && responseDTO.IsSuccess)
+            {
+                TempData["success"] = "Delete product successfully!";
+            }
+            else
+            {
+                TempData["error"] = responseDTO.Message;
+            }
+            return RedirectToAction(nameof(ProductIndex));
         }
     }
 }
