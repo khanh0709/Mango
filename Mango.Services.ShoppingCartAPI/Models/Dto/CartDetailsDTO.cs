@@ -7,9 +7,9 @@ namespace Mango.Services.ShoppingCartAPI.Models.Dto
 	{
 		public int CartDetailsId { get; set; }
 		public int CartHeaderId { get; set; }
-		public CartDetailsDTO CartHeader { get; set; }
+		public CartDetailsDTO? CartHeader { get; set; }
 		public int ProductId { get; set; }
-		public ProductDTO Product { get; set; }
+		public ProductDTO? Product { get; set; }
 		public int Count { get; set; }
 	}
 }
