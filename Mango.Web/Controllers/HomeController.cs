@@ -1,8 +1,12 @@
+using IdentityModel;
 using Mango.Web.Models;
+using Mango.Web.Models.Dto;
 using Mango.Web.Service.IService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Mango.Web.Controllers
 {
@@ -10,9 +14,11 @@ namespace Mango.Web.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IProductService _productService;
-        public HomeController(IProductService productService)
+        private readonly ICartService _cartService;
+        public HomeController(IProductService productService, ICartService cartService)
         {
             _productService = productService;
+            _cartService = cartService; 
         }
 
         public async Task<IActionResult> Index()
@@ -30,7 +36,7 @@ namespace Mango.Web.Controllers
             return View(products);
         }
 
-
+        
         public async Task<IActionResult> ProductDetails(int productId)
         {
             ProductDTO product = new ProductDTO();
@@ -45,6 +51,39 @@ namespace Mango.Web.Controllers
             }
             return View(product);
         }
+
+        [Authorize]
+        [HttpPost]
+        [ActionName("ProductDetails")]
+        public async Task<IActionResult> ProductDetails(ProductDTO productDTO)
+        {
+            CartDTO cartDTO = new CartDTO()
+            {
+                CartHeader = new CartHeaderDTO
+                {
+                    UserId = User.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Sub)?.Value,
+                    //UserId = User.Claims.FirstOrDefault(u => u.Type == JwtClaimTypes.Subject).Value
+                }
+            };
+            CartDetailsDTO cartDetailsDTO = new CartDetailsDTO()
+            {
+                Count = productDTO.Count,
+                ProductId = productDTO.ProductId
+            };
+            List<CartDetailsDTO> cartDetailsDTOs = new() { cartDetailsDTO };
+            cartDTO.CartDetails = cartDetailsDTOs;
+            ResponseDto? responseDTO = await _cartService.UpsertCartAsync(cartDTO);
+            if (responseDTO != null && responseDTO.IsSuccess)
+            {
+                TempData["success"] = "Item hass been added";
+            }
+            else
+            {
+                TempData["error"] = "Error";
+            }
+            return View(productDTO);
+        }
+
 
         public IActionResult Privacy()
         {
