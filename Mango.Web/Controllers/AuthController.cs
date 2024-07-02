@@ -105,16 +105,16 @@ namespace Mango.Web.Controllers
             var handler = new JwtSecurityTokenHandler();
             var jwt = handler.ReadJwtToken(model.Token);
             var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
-            //identity.AddClaim(new Claim(JwtRegisteredClaimNames.Email, 
-            //    jwt.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Email).Value));
-            //identity.AddClaim(new Claim(JwtRegisteredClaimNames.Sub, 
-            //    jwt.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Sub).Value));
+            identity.AddClaim(new Claim(JwtRegisteredClaimNames.Email,
+                jwt.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Email).Value));
+            identity.AddClaim(new Claim(JwtRegisteredClaimNames.Sub,
+                jwt.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Sub).Value));
             identity.AddClaim(new Claim(JwtRegisteredClaimNames.Name, 
                 jwt.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Name).Value));
 
-            //tai sao ko dung claimtypes o day
-            //identity.AddClaim(new Claim(ClaimTypes.Name,
-            //   jwt.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Email).Value));
+            //dung de gan name cho user.identity
+            identity.AddClaim(new Claim(ClaimTypes.Name,
+               jwt.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Email).Value));
 
             //dung de phan quyen trong controller cua Web, ko phai cua api
             identity.AddClaim(new Claim(ClaimTypes.Role,

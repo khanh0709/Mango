@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Mango.Services.ShoppingCartAPI.Controllers
 {
 	[ApiController]
-	[Route("[controller]")]
-	public class CartAPIController : ControllerBase
+    [Route("api/[controller]")]
+    public class CartAPIController : ControllerBase
 	{
         private readonly AppDbContext _db;
         private readonly IMapper _mapper;
@@ -101,7 +101,7 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
             catch (Exception e)
             {
                 _response.Message = e.Message;
-                _response.Result = false;
+                _response.IsSuccess = false;
             }
             return _response;
         }

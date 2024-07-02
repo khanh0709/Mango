@@ -76,6 +76,7 @@ namespace Mango.Web.Controllers
             if (responseDTO != null && responseDTO.IsSuccess)
             {
                 TempData["success"] = "Item hass been added";
+                return RedirectToAction(nameof(Index));
             }
             else
             {
