@@ -28,7 +28,6 @@ namespace Mango.Web.Service
 			return await _baseService.SendAsync(new RequestDto()
 			{
 				ApiType = SD.ApiType.Get,
-				Data = userId,
 				Url = SD.ShoppingCartAPIBase + "/api/CartAPI/GetCart/" + userId
 			});
 		}

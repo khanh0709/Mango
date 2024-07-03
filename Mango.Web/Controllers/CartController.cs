@@ -25,7 +25,7 @@ namespace Mango.Web.Controllers
 			ResponseDto response = await _cartService.GetCartByUserIdAsync(userId);
 			if(response != null && response.IsSuccess)
 			{
-				CartDTO cartDto = JsonConvert.DeserializeObject<CartDTO>(Convert.ToString(response));
+				CartDTO cartDto = JsonConvert.DeserializeObject<CartDTO>(Convert.ToString(response.Result));
 				return cartDto;
 			}
 			return new CartDTO();

@@ -78,7 +78,7 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
 
                 };
                 var detail = _mapper.Map<CartDetailsDTO>(_db.CartDetails.First(c => c.CartHeaderId == cart.CartHeader.CartHeaderId));
-                var details = _db.CartDetails.Where(c => c.CartHeaderId == cart.CartHeader.CartHeaderId);
+                var details = _db.CartDetails.Where(c => c.CartHeaderId == cart.CartHeader.CartHeaderId).ToList();
                 cart.CartDetails = _mapper.Map<IEnumerable<CartDetailsDTO>>(details);
                 IEnumerable<ProductDTO> productDtos = await _productService.GetProducts();
                 foreach(var item in cart.CartDetails) 
